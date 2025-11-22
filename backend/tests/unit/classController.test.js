@@ -85,4 +85,57 @@ describe("classController", () => {
     expect(res.json).toHaveBeenCalled();
   });
 
+  test("createClass - missing field should return 400", async () => {
+    const req = { body: { description: "Beginner", instructorId: "10" } };
+    const res = mockRes();
+  
+    await createClass(req, res);
+  
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+  
+  test("createClass - prisma error should return 400", async () => {
+    const req = { body: { name: "Yoga", description: "Basic", instructorId: "10" } };
+    const res = mockRes();
+  
+    prisma.class.create.mockRejectedValue(new Error("Database error"));
+  
+    await createClass(req, res);
+  
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+  
+  test("getAllClasses - empty result should return []", async () => {
+    const req = {};
+    const res = mockRes();
+  
+    prisma.class.findMany.mockResolvedValue([]);
+  
+    await getAllClasses(req, res);
+  
+    expect(res.json).toHaveBeenCalledWith([]);
+  });
+  
+  test("updateClass - record not found", async () => {
+    const req = { params: { id: "999" }, body: {} };
+    const res = mockRes();
+  
+    prisma.class.update.mockRejectedValue(new Error("Record not found"));
+  
+    await updateClass(req, res);
+  
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+  
+  test("deleteClass - record not found", async () => {
+    const req = { params: { id: "999" } };
+    const res = mockRes();
+  
+    prisma.class.delete.mockRejectedValue(new Error("Record not found"));
+  
+    await deleteClass(req, res);
+  
+    expect(res.status).toHaveBeenCalledWith(400);
+  });  
+
 });

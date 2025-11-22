@@ -1,18 +1,38 @@
 const prisma = require('../config/prisma');
 
 // Create new class
+// exports.createClass = async (req, res) => {
+//   try {
+//     const { name, description, instructorId } = req.body;
+//     const classItem = await prisma.class.create({
+//       data: { name, description, instructorId },
+//       include: { instructor: true }
+//     });
+//     res.status(201).json(classItem);
+//   } catch (error) {
+//     res.status(400).json({ error: error.message });
+//   }
+// };
+
 exports.createClass = async (req, res) => {
   try {
     const { name, description, instructorId } = req.body;
+
+    if (!name || !instructorId) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
     const classItem = await prisma.class.create({
       data: { name, description, instructorId },
       include: { instructor: true }
     });
+
     res.status(201).json(classItem);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 };
+
 
 // Get all classes
 exports.getAllClasses = async (req, res) => {

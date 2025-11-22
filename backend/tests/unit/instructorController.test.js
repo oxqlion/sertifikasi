@@ -48,4 +48,37 @@ describe("instructorController", () => {
     expect(res.status).toHaveBeenCalledWith(404);
   });
 
+  test("createInstructor - duplicate email should return 400", async () => {
+    const req = { body: { name: "John", email: "john@mail.com" } };
+    const res = mockRes();
+  
+    prisma.instructor.create.mockRejectedValue(new Error("Unique constraint failed"));
+  
+    await createInstructor(req, res);
+  
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+  
+  test("getAllInstructors - empty list", async () => {
+    const req = {};
+    const res = mockRes();
+  
+    prisma.instructor.findMany.mockResolvedValue([]);
+  
+    await getAllInstructors(req, res);
+  
+    expect(res.json).toHaveBeenCalledWith([]);
+  });
+  
+  test("updateInstructor - prisma error", async () => {
+    const req = { params: { id: "20" }, body: { name: "New" } };
+    const res = mockRes();
+  
+    prisma.instructor.update.mockRejectedValue(new Error("Update failed"));
+  
+    await updateInstructor(req, res);
+  
+    expect(res.status).toHaveBeenCalledWith(400);
+  });  
+
 });

@@ -48,4 +48,38 @@ describe("participantController", () => {
     expect(res.status).toHaveBeenCalledWith(404);
   });
 
+  test("createParticipant - duplicate email should return 400", async () => {
+    const req = { body: { name: "Rafi", email: "test@mail.com" } };
+    const res = mockRes();
+  
+    prisma.participant.create.mockRejectedValue(new Error("Unique constraint failed"));
+  
+    await createParticipant(req, res);
+  
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+  
+  test("updateParticipant - missing fields", async () => {
+    const req = { params: { id: "1" }, body: {} };
+    const res = mockRes();
+  
+    prisma.participant.update.mockRejectedValue(new Error("Update failed"));
+  
+    await updateParticipant(req, res);
+  
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+  
+  test("deleteParticipant - record not found", async () => {
+    const req = { params: { id: "99" } };
+    const res = mockRes();
+  
+    prisma.participant.delete.mockRejectedValue(new Error("Record not found"));
+  
+    await deleteParticipant(req, res);
+  
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+  
+
 });
