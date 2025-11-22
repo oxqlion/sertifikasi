@@ -1,0 +1,92 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" 
+  url      = env("DATABASE_URL")
+}
+
+// Participant model - represents students in the system
+model Participant {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  registrations ParticipantRegistration[]
+
+  @@map("participants")
+}
+
+// Instructor model - represents instructors/teachers
+model Instructor {
+  id          String   @id @default(cuid())
+  name        String
+  email       String   @unique
+  phone       String?
+  specialty   String?  // Area of expertise
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  classes              Class[]
+  instructorRegistrations InstructorRegistration[]
+
+  @@map("instructors")
+}
+
+// Class model - represents courses/classes offered
+model Class {
+  id          String   @id @default(cuid())
+  name        String
+  description String   @db.Text
+  instructorId String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  instructor              Instructor                @relation(fields: [instructorId], references: [id], onDelete: Cascade)
+  participantRegistrations ParticipantRegistration[]
+  instructorRegistrations  InstructorRegistration[]
+
+  @@map("classes")
+}
+
+// Junction table for Participant-Class many-to-many relationship
+model ParticipantRegistration {
+  id            String   @id @default(cuid())
+  participantId String
+  classId       String
+  enrolledAt    DateTime @default(now())
+
+  // Relations
+  participant Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  class       Class       @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  // Ensure a participant can't register for the same class twice
+  @@unique([participantId, classId])
+  @@map("participant_registrations")
+}
+
+// Junction table for Instructor-Class many-to-many relationship
+model InstructorRegistration {
+  id           String   @id @default(cuid())
+  instructorId String
+  classId      String
+  assignedAt   DateTime @default(now())
+
+  // Relations
+  instructor Instructor @relation(fields: [instructorId], references: [id], onDelete: Cascade)
+  class      Class      @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  // Ensure an instructor can't be assigned to the same class twice
+  @@unique([instructorId, classId])
+  @@map("instructor_registrations")
+}
