@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { classAPI, instructorAPI } from '@/lib/api';
+import { classAPI, instructorAPI, registrationAPI } from '@/lib/api';
 
 export default function ClassDetailPage({ params }) {
   const router = useRouter();
@@ -70,6 +70,16 @@ export default function ClassDetailPage({ params }) {
     }
   };
 
+  const handleRemoveParticipant = async (id) => {
+    try {
+      await registrationAPI.cancelParticipantRegistration(id);
+      fetchClass();
+    } catch (err) {
+      alert('Failed to remove participant');
+      console.error(err);
+    }
+  };
+
   const handleDelete = async () => {
     if (confirm('Are you sure you want to delete this class?')) {
       try {
@@ -115,7 +125,7 @@ export default function ClassDetailPage({ params }) {
             {isEditing ? (
               <form onSubmit={handleUpdate} className="card">
                 <h2 className="text-2xl font-semibold mb-6">Edit Class Information</h2>
-                
+
                 <div className="mb-4">
                   <label htmlFor="name" className="label">Class Name</label>
                   <input
@@ -227,6 +237,13 @@ export default function ClassDetailPage({ params }) {
                     <div key={reg.id} className="border border-gray-200 rounded-lg p-2">
                       <p className="font-semibold text-gray-800">{reg.participant.name}</p>
                       <p className="text-sm text-gray-600">{reg.participant.email}</p>
+
+                      <button
+                        onClick={() => handleRemoveParticipant(reg.id)}
+                        className="text-red-600 hover:text-red-800 text-sm font-medium"
+                      >
+                        Remove
+                      </button>
                     </div>
                   ))}
                 </div>
